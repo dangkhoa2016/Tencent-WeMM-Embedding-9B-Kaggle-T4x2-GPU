@@ -1,0 +1,7 @@
+# Kaggle runtime dependencies for Tencent WeMM-Embedding-9B.
+# PyTorch is intentionally NOT listed. Kaggle's CUDA-enabled system torch MUST be reused.
+transformers==5.2.0
+accelerate==1.14.0
+qwen-vl-utils[decord]==0.0.14
+safetensors>=0.5.0
+pillow>=10.0.0
