@@ -42,7 +42,7 @@ fi
 
 ACCELERATE_SPEC="$(grep -E '^[[:space:]]*accelerate==' "$REQ" | tr -d '[:space:]')"
 [[ "$ACCELERATE_SPEC" == "accelerate==1.14.0" ]] \
-  || fail "accelerate must be pinned exactly to accelerate==1.14.0 for the proven v0.1.1 runtime"
+  || fail "accelerate must be pinned exactly to accelerate==1.14.0 for the qualified Kaggle runtime"
 
 # 1) Capture the Kaggle system Torch identity before venv creation.
 "$PYTHON_BIN" "$GUARD" capture \
