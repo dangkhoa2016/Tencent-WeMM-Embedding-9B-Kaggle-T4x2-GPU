@@ -1,0 +1,6 @@
+# REST/API-only dependencies. The proven model runtime remains in requirements-kaggle.txt.
+# Torch/CUDA/NVIDIA packages are intentionally forbidden here.
+fastapi==0.141.1
+uvicorn==0.52.4
+python-multipart==0.0.32
+httpx==0.28.1
