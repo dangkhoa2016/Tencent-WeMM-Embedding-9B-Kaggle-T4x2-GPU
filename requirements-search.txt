@@ -1,0 +1,8 @@
+# Search gateway (Qdrant + Wikidata EN-VI) integration dependencies for v0.3.0-rc1.
+# These are a thin localhost integration layer on top of the frozen v0.2.0 embedding API.
+# Torch/CUDA/NVIDIA packages are intentionally forbidden here (reuse Kaggle system torch).
+qdrant-client==1.19.0
+fastapi==0.141.1
+uvicorn==0.52.4
+httpx==0.28.1
+pyarrow==24.0.0
