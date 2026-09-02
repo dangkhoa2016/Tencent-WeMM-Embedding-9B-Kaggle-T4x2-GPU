@@ -1,0 +1,3 @@
+# Public production-demo integration dependencies. Kaggle system Torch is reused.
+qdrant-client==1.19.0
+requests==2.32.5

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "staging/**", "candidate/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Repository tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Install CPU test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install pytest packaging pillow -r requirements-api.txt -r requirements-demo.txt -r requirements-search.txt
+      - name: Verify bilingual documentation
+        run: python scripts/check_bilingual_docs.py --history
+      - name: Verify Markdown links
+        run: python scripts/check_doc_links.py
+      - name: Verify publication policy
+        run: python scripts/check_publication_policy.py
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Compile
+        run: python -m compileall -q wemm_runtime wemm_kaggle scripts
+      - name: Shell syntax
+        run: bash -n kaggle/*.sh
+      - name: Whitespace
+        run: git diff --check

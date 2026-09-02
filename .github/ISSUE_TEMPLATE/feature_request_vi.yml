@@ -1,0 +1,23 @@
+name: Đề xuất tính năng (Tiếng Việt)
+description: Đề xuất một cải tiến có phạm vi rõ ràng.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Vấn đề hoặc use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Thay đổi đề xuất
+    validations:
+      required: true
+  - type: textarea
+    id: qualification
+    attributes:
+      label: Ảnh hưởng qualification
+    validations:
+      required: true
