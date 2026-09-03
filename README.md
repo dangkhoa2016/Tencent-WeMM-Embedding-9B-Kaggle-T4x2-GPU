@@ -235,7 +235,9 @@ flowchart LR
     H["Kaggle T4 GPU 1"] --> B
 ```
 
-The model runtime runs in a subprocess worker so GPU state can be released predictably when a notebook/demo session closes.
+The public Kaggle notebook/demo executes model workloads through the isolated `SubprocessEmbeddingWorker` so GPU state can be reclaimed predictably at demo closeout.
+
+The loopback FastAPI service currently owns an in-process model runtime behind a single-threaded inference scheduler. Its service lifecycle is separate from the notebook/demo subprocess worker. See [Architecture](docs/architecture.md).
 
 ## Verified runtime profile
 
@@ -292,21 +294,24 @@ The gallery contains exactly four original images and is temporary. It is not wr
 
 ## Reproducibility and testing
 
-Current public CI qualification:
+v1.0.0 release qualification baseline:
 
 ```text
-469 passed
+470 passed
 3 skipped
-152 Markdown link targets
+234 Markdown link targets
 ```
+
+Pytest warning totals can vary with the resolved transitive test environment. They are recorded in each CI run and are not treated as a source invariant.
 
 Equivalent repository checks:
 
 ```bash
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
-python -m pip install pytest packaging pillow -r requirements-api.txt -r requirements-demo.txt
+python -m pip install pytest packaging pillow -r requirements-api.txt -r requirements-demo.txt -r requirements-search.txt
 
 python scripts/check_bilingual_docs.py --history
+python scripts/check_doc_links.py
 python scripts/check_publication_policy.py
 python -m pytest -q
 python -m compileall -q wemm_runtime wemm_kaggle scripts

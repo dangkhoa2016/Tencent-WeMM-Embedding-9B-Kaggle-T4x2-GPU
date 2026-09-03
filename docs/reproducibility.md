@@ -15,7 +15,7 @@ The documentation suite does not change the scientific/runtime qualification bou
 The public notebook pins the reusable runtime commit:
 
 ```text
-33417cee59bd4eb03bfa1e5e0fdc605ae558cf02
+224f07cd1d6eb174d3532c9eaeeb9abd606a857f
 ```
 
 That commit remains reachable in public history.
@@ -57,12 +57,12 @@ The public notebook keeps dependency authority split explicitly: `requirements-k
 
 Repository CI is CPU-only and verifies source-level contracts, documentation policy, local Markdown links, and tests.
 
-Current public test qualification:
+v1.0.0 release qualification baseline:
 
 ```text
-142 passed
+470 passed
 3 skipped
-2 warnings
+234 Markdown link targets
 ```
 
 CPU CI is not a replacement for the T4 ×2 hardware execution.

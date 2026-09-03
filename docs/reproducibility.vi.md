@@ -15,7 +15,7 @@ Documentation suite không thay đổi scientific/runtime qualification boundari
 Public notebook pin reusable runtime commit:
 
 ```text
-33417cee59bd4eb03bfa1e5e0fdc605ae558cf02
+224f07cd1d6eb174d3532c9eaeeb9abd606a857f
 ```
 
 Commit này vẫn reachable trong public history.
@@ -57,12 +57,12 @@ Public notebook cũng tách dependency authority rõ ràng: `requirements-kaggle
 
 Repository CI chạy CPU-only và verify source-level contracts, documentation policy, local Markdown links và tests.
 
-Current public test qualification:
+v1.0.0 release qualification baseline:
 
 ```text
-142 passed
+470 passed
 3 skipped
-2 warnings
+234 Markdown link targets
 ```
 
 CPU CI không thay thế hardware execution trên T4 ×2.

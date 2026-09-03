@@ -235,7 +235,9 @@ flowchart LR
     H["Kaggle T4 GPU 1"] --> B
 ```
 
-Model chạy trong subprocess worker riêng để trạng thái CUDA có thể được thu hồi có kiểm soát khi notebook hoặc demo kết thúc.
+Public notebook/demo trên Kaggle chạy model workload qua `SubprocessEmbeddingWorker` tách biệt để trạng thái GPU có thể được thu hồi có kiểm soát khi demo closeout.
+
+FastAPI loopback hiện giữ model runtime trong cùng process của service và đặt nó phía sau inference scheduler một luồng. Lifecycle của API tách biệt với subprocess worker của notebook/demo. Xem [Architecture](docs/architecture.vi.md).
 
 ## Cấu hình runtime đã xác minh
 
@@ -292,21 +294,24 @@ Gallery này chỉ có bốn ảnh gốc, tồn tại tạm thời và không đ
 
 ## Khả năng tái lập và kiểm thử
 
-Kết quả CI công khai hiện tại:
+v1.0.0 release qualification baseline:
 
 ```text
-469 passed
+470 passed
 3 skipped
-152 Markdown link targets
+234 Markdown link targets
 ```
+
+Tổng số warning của pytest có thể thay đổi theo môi trường resolve của các dependency transitive. Số warning được ghi nhận trong từng CI run, không được coi là source invariant.
 
 Có thể chạy các repository check tương đương bằng:
 
 ```bash
 python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
-python -m pip install pytest packaging pillow -r requirements-api.txt -r requirements-demo.txt
+python -m pip install pytest packaging pillow -r requirements-api.txt -r requirements-demo.txt -r requirements-search.txt
 
 python scripts/check_bilingual_docs.py --history
+python scripts/check_doc_links.py
 python scripts/check_publication_policy.py
 python -m pytest -q
 python -m compileall -q wemm_runtime wemm_kaggle scripts
