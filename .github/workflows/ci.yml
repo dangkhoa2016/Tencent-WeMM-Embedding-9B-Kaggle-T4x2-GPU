@@ -36,13 +36,13 @@ jobs:
         run: python scripts/check_bilingual_docs.py --history
       - name: Verify Markdown links
         run: python scripts/check_doc_links.py
-      - name: Verify publication policy
-        run: python scripts/check_publication_policy.py
       - name: Run tests
-        run: python -m pytest -q
+        run: python -m pytest -q -p no:cacheprovider
       - name: Compile
         run: python -m compileall -q wemm_runtime wemm_kaggle scripts
       - name: Shell syntax
         run: bash -n kaggle/*.sh
       - name: Whitespace
         run: git diff --check
+      - name: Verify publication policy
+        run: python scripts/check_publication_policy.py
