@@ -141,6 +141,19 @@ def test_visual_transform_preview_is_auditable_and_presentation_only():
     assert "changed-from-original=" in source
     assert "VISUAL_TRANSFORM_PREVIEW_EVIDENCE=PASS" in source
 
+    # Presentation contract: 1400px-wide, two images per row, three rows, high contrast.
+    assert "panel_w, panel_h = 700, 520" in source
+    assert "cols, rows = 2, 3" in source
+    assert '(24, 26, 29)' in source
+    assert 'fill=(48, 52, 57)' in source
+    assert 'outline=(245, 247, 249)' in source
+
+    # Inline notebook output is compact, while full Top-3 evidence stays in JSON.
+    assert "Compact robustness summary / Tóm tắt độ bền:" in source
+    assert "Full per-path Top-3 evidence is preserved in visual-robustness.json" in source
+    assert '"top3": top3' in source
+    assert "for hit in top3:" not in source
+
     # Retrieval must still embed the real transform files, not any presentation artifact.
     assert "demo.worker.embed_image(transform_path, 4096)" in source
     assert "display(sheet)" in source

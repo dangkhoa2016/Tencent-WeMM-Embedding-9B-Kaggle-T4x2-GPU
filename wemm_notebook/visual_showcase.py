@@ -112,10 +112,10 @@ def _display_transform_evidence(original_path: Path, transform_paths: dict[str, 
 
     original_size = original.size
     original_sha = _sha256(original_path)
-    panel_w, panel_h = 320, 260
-    title_h = 42
-    cols, rows = 3, 2
-    sheet = Image.new("RGB", (panel_w * cols, panel_h * rows), "white")
+    panel_w, panel_h = 700, 520
+    title_h = 62
+    cols, rows = 2, 3
+    sheet = Image.new("RGB", (panel_w * cols, panel_h * rows), (24, 26, 29))
     draw = ImageDraw.Draw(sheet)
 
     panels = [("ORIGINAL", original, original_size)]
@@ -152,8 +152,8 @@ def _display_transform_evidence(original_path: Path, transform_paths: dict[str, 
     )
     panels.append(("CROP BOUNDARY (VISUAL AID)", crop_overlay, original_size))
 
-    max_img_w = panel_w - 28
-    max_img_h = panel_h - title_h - 28
+    max_img_w = panel_w - 64
+    max_img_h = panel_h - title_h - 58
     base_scale = min(max_img_w / original_size[0], max_img_h / original_size[1])
 
     for panel_index, (title, image, actual_size) in enumerate(panels):
@@ -161,15 +161,16 @@ def _display_transform_evidence(original_path: Path, transform_paths: dict[str, 
         row = panel_index // cols
         x0, y0 = col * panel_w, row * panel_h
         draw.rectangle(
-            (x0 + 6, y0 + 6, x0 + panel_w - 6, y0 + panel_h - 6),
-            fill=(246, 246, 246),
-            outline=(205, 205, 205),
+            (x0 + 8, y0 + 8, x0 + panel_w - 8, y0 + panel_h - 8),
+            fill=(48, 52, 57),
+            outline=(214, 218, 223),
+            width=2,
         )
-        draw.text((x0 + 14, y0 + 12), title, fill=(0, 0, 0))
+        draw.text((x0 + 18, y0 + 14), title, fill=(248, 249, 250))
         draw.text(
-            (x0 + 14, y0 + 27),
+            (x0 + 18, y0 + 31),
             f"{int(actual_size[0])}x{int(actual_size[1])}",
-            fill=(70, 70, 70),
+            fill=(205, 210, 215),
         )
 
         target_w = max(1, int(image.size[0] * base_scale))
@@ -178,6 +179,11 @@ def _display_transform_evidence(original_path: Path, transform_paths: dict[str, 
         px = x0 + (panel_w - target_w) // 2
         py = y0 + title_h + (panel_h - title_h - target_h) // 2
         sheet.paste(rendered, (px, py))
+        draw.rectangle(
+            (px - 3, py - 3, px + target_w + 2, py + target_h + 2),
+            outline=(245, 247, 249),
+            width=2,
+        )
 
     print(
         "  Preview evidence / Bằng chứng trực quan: ORIGINAL + all 4 frozen transforms.",
@@ -337,19 +343,6 @@ def run_visual_showcase(demo) -> dict:
                         "top3": top3,
                     })
 
-                    print(
-                        f"  {transform_name:<20} | {dimension:4d}d | "
-                        f"rank=#{expected_rank} | raw cosine={expected_score:.6f} | "
-                        f"{'PASS' if path_pass else 'FAIL'}",
-                        flush=True,
-                    )
-                    for hit in top3:
-                        print(
-                            f"      #{hit['rank']} {hit['qid']:<11} "
-                            f"score={hit['score']:.6f} | "
-                            f"VI={hit['label_vi']} | EN={hit['label_en']}",
-                            flush=True,
-                        )
 
             scores = [p["raw_cosine"] for p in path_results]
             strict_pass = len(path_results) == 8 and all(p["pass"] for p in path_results)
@@ -365,8 +358,44 @@ def run_visual_showcase(demo) -> dict:
                 "strict_pass": strict_pass,
             }
             rows.append(row)
-            print(f"  Min raw cosine runtime / Runtime minimum raw cosine: {row['runtime_min_raw_cosine']:.6f}", flush=True)
-            print("  Kết quả / Verdict: " + ("8/8 PATHS TOP-1 >= 0.90 — PASS" if strict_pass else "FAIL"), flush=True)
+
+            summary = {
+                (p["transform"], int(p["dimension"])): p
+                for p in path_results
+            }
+            print("  Compact robustness summary / Tóm tắt độ bền:", flush=True)
+            print("  transform             | 4096d raw cosine | 1024d raw cosine | verdict", flush=True)
+            for transform_name in (
+                "resize_80pct",
+                "jpeg_q90",
+                "center_crop_96pct",
+                "brightness_103pct",
+            ):
+                p4096 = summary[(transform_name, 4096)]
+                p1024 = summary[(transform_name, 1024)]
+                transform_pass = bool(p4096["pass"] and p1024["pass"])
+                print(
+                    f"  {transform_name:<20} | "
+                    f"{p4096['raw_cosine']:.6f}         | "
+                    f"{p1024['raw_cosine']:.6f}         | "
+                    f"{'PASS' if transform_pass else 'FAIL'}",
+                    flush=True,
+                )
+            print(
+                f"  Min raw cosine runtime / Runtime minimum raw cosine: "
+                f"{row['runtime_min_raw_cosine']:.6f}",
+                flush=True,
+            )
+            print(
+                "  Kết quả / Verdict: "
+                + ("8/8 PATHS TOP-1 >= 0.90 — PASS" if strict_pass else "FAIL"),
+                flush=True,
+            )
+            print(
+                "  Full per-path Top-3 evidence is preserved in visual-robustness.json "
+                "and intentionally omitted from inline notebook output.",
+                flush=True,
+            )
 
         runtime_min = min(row["runtime_min_raw_cosine"] for row in rows)
         all_strict = (
