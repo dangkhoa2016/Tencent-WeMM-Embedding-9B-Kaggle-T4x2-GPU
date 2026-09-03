@@ -174,22 +174,27 @@ def run_text_showcase(demo):
           <div style="font-size:16px;font-weight:700;margin:16px 0 7px 0">
             Cross-language result / Kết quả truy xuất chéo ngôn ngữ
           </div>
-          <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <table style="width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed">
+            <colgroup>
+              <col style="width:12%">
+              <col style="width:44%">
+              <col style="width:44%">
+            </colgroup>
             <thead>
               <tr>
-                <th style="text-align:left;padding:8px;border-bottom:1px solid #cccccc">Direction</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #cccccc;white-space:nowrap">Direction</th>
                 <th style="text-align:left;padding:8px;border-bottom:1px solid #cccccc">4096d</th>
                 <th style="text-align:left;padding:8px;border-bottom:1px solid #cccccc">1024d</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td style="padding:9px 8px;vertical-align:top"><b>🇬🇧 EN → 🇻🇳 VI</b></td>
+                <td style="padding:9px 8px;vertical-align:top;white-space:nowrap"><b>🇬🇧 EN → 🇻🇳 VI</b></td>
                 <td style="padding:9px 8px;vertical-align:top">{_winner_competitor_cell(paths[('EN→VI', 4096)], item['qid'])}</td>
                 <td style="padding:9px 8px;vertical-align:top">{_winner_competitor_cell(paths[('EN→VI', 1024)], item['qid'])}</td>
               </tr>
               <tr>
-                <td style="padding:9px 8px;vertical-align:top"><b>🇻🇳 VI → 🇬🇧 EN</b></td>
+                <td style="padding:9px 8px;vertical-align:top;white-space:nowrap"><b>🇻🇳 VI → 🇬🇧 EN</b></td>
                 <td style="padding:9px 8px;vertical-align:top">{_winner_competitor_cell(paths[('VI→EN', 4096)], item['qid'])}</td>
                 <td style="padding:9px 8px;vertical-align:top">{_winner_competitor_cell(paths[('VI→EN', 1024)], item['qid'])}</td>
               </tr>

@@ -87,6 +87,17 @@ def test_text_showcase_is_full_text_and_separates_winner_competitor():
     assert "confidence percentage" in source
 
 
+def test_text_result_table_prioritizes_result_columns_over_direction():
+    source = (MODULE_DIR / "text_showcase.py").read_text(encoding="utf-8")
+
+    assert 'table-layout:fixed' in source
+    assert '<col style="width:12%">' in source
+    assert source.count('<col style="width:44%">') >= 2
+    assert 'white-space:nowrap">Direction</th>' in source
+    assert 'white-space:nowrap"><b>🇬🇧 EN → 🇻🇳 VI</b>' in source
+    assert 'white-space:nowrap"><b>🇻🇳 VI → 🇬🇧 EN</b>' in source
+
+
 def test_frozen_runtime_and_visual_contracts_are_not_reopened():
     bootstrap = (MODULE_DIR / "bootstrap.py").read_text(encoding="utf-8")
     visual = (MODULE_DIR / "visual_showcase.py").read_text(encoding="utf-8")
