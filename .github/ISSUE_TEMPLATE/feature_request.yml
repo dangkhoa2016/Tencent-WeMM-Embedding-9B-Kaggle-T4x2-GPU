@@ -1,0 +1,23 @@
+name: Feature request (English)
+description: Propose a focused improvement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: qualification
+    attributes:
+      label: Qualification impact
+    validations:
+      required: true
