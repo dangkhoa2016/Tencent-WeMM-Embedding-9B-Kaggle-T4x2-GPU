@@ -108,3 +108,25 @@ def test_visual_showcase_defers_frozen_runtime_imports():
     assert not any(name.startswith("wemm_kaggle") for name in top_level_imports)
     assert "qdrant_client" not in top_level_imports
     assert "from wemm_kaggle.demo_config import EVID, RUN_ROOT" in source
+
+
+def test_public_notebook_restores_sectioned_markdown_presentation():
+    nb = _notebook()
+    markdown_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "markdown"]
+    assert len(markdown_cells) == 8
+
+    rendered = ["".join(cell["source"]) for cell in markdown_cells]
+    expected_headings = [
+        "# Tencent WeMM-Embedding-9B + Qdrant — Kaggle T4×2 Production Demo",
+        "## Kiến trúc, search spaces và Kaggle Inputs / Architecture, search spaces, and Kaggle Inputs",
+        "## Steps 1/8–5/8 — Bootstrap + chuẩn bị hệ thống / Bootstrap + system setup",
+        "## Step 6/8 — Truy xuất văn bản song ngữ / Bilingual text retrieval",
+        "## Step 7A/8 — Truy xuất semantic ảnh→văn bản / Semantic image→text retrieval",
+        "## Step 7B/8 — Độ bền truy xuất hình ảnh / Visual robustness retrieval",
+        "## Step 8/8 — Đóng phiên + nghiệm thu / Closeout + acceptance",
+        "## Contract chấp nhận + cách chạy / Acceptance contract + how to run",
+    ]
+    assert [text.splitlines()[0] for text in rendered] == expected_headings
+
+    assert nb["metadata"]["wemm_public_demo"]["presentation_markdown_cells"] == 8
+    assert nb["metadata"]["wemm_public_demo"]["presentation_sections_restored"] is True
