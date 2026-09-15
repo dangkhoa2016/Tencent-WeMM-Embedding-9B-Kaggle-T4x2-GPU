@@ -161,3 +161,52 @@ def test_step7a_and_step7b_modules_do_not_duplicate_notebook_headings():
     assert "## Step 7A/8" not in image
     assert "## Step 7B/8" not in visual
     assert "## Step 8/8" not in closeout
+
+
+def test_public_notebook_markdown_restores_kaggle_onboarding_and_phase_guidance():
+    nb = _notebook()
+    markdown_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "markdown"]
+    assert len(markdown_cells) == 5
+    rendered = ["".join(cell["source"]) for cell in markdown_cells]
+
+    setup = rendered[0]
+    assert "Add Input" in setup
+    assert "GPU T4 ×2" in setup
+    assert "Internet = ON" in setup
+    assert "dangkhoa2016/tencent-wemm-embedding-9b" in setup
+    assert "dangkhoa2016/wemm-embedding-9b-v1-qdrant-snapshots" in setup
+    assert "version `1`" in setup
+    assert "/kaggle/input" in setup
+    assert "PUBLIC_NOTEBOOK_PRESENTATION_REF=v1.0.0" in setup
+    assert "NOTEBOOK_PHASE_SETUP=PASS" in setup
+
+    step6 = rendered[1]
+    assert "20 retrieval paths" in step6
+    assert "TOP-1 WINNER / KẾT QUẢ #1" in step6
+    assert "NEAREST COMPETITOR / ĐỐI THỦ GẦN NHẤT" in step6
+    assert "TEXT_SHOWCASE_ALL_TOP1=5/5" in step6
+    assert "confidence percentage" in step6
+
+    step7a = rendered[2]
+    assert "99,967 entities per collection" in step7a
+    assert "16 semantic retrieval paths" in step7a
+    assert "NOTEBOOK_PHASE_STEP7A=PASS" in step7a
+
+    step7b = rendered[3]
+    for qid in ("Q19217", "Q10489198", "Q168751", "Q51756"):
+        assert qid in step7b
+    assert "32 retrieval paths" in step7b
+    assert "raw cosine >= 0.90" in step7b
+    assert "VISUAL_RETRIEVAL_TEMP_QDRANT=DELETED" in step7b
+
+    step8 = rendered[4]
+    assert "36/36 TOP-1" in step8
+    assert "32/32 TOP-1" in step8
+    assert "68/68 PASS" in step8
+    assert "not" in step8.lower()
+    assert "100% accuracy" in step8
+    assert "SECTIONED_NOTEBOOK_RUNNER=PASS" in step8
+
+    metadata = nb["metadata"]["wemm_public_demo"]
+    assert metadata["markdown_onboarding_restored"] is True
+    assert metadata["per_phase_guidance_expanded"] is True
