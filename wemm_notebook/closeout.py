@@ -8,21 +8,6 @@ from IPython.display import Markdown, display
 def run_closeout(demo, visual_results: dict):
     """Close the demo, reclaim resources and emit the accepted aggregate scorecard."""
 
-    display(
-        Markdown(
-            "## Step 8/8 — Đóng phiên + nghiệm thu / Closeout + acceptance\n\n"
-            "**VI:** Closeout giải phóng GPU worker, xác minh VRAM reclaim, dừng và seal "
-            "Qdrant production storage. Scorecard giữ hai search space độc lập: semantic "
-            "36/36 trên corpus 99,967 entities và visual robustness 32/32 trên temporary "
-            "4-image gallery. 68/68 chỉ là TOTAL EXECUTED RETRIEVAL CHECKS.\n\n"
-            "**EN:** Closeout releases the GPU worker, verifies VRAM reclaim, stops and "
-            "seals production Qdrant storage. The scorecard keeps two independent search "
-            "spaces: semantic 36/36 over the 99,967-entity corpus and visual robustness "
-            "32/32 over a temporary four-image gallery. 68/68 is only TOTAL EXECUTED "
-            "RETRIEVAL CHECKS."
-        )
-    )
-
     if visual_results is None or visual_results.get("verdict") != "PASS":
         raise RuntimeError("Step 7B must PASS before Step 8 closeout")
     if visual_results.get("total_paths") != 32:
@@ -61,12 +46,12 @@ def run_closeout(demo, visual_results: dict):
     print("VISUAL_ROBUSTNESS_RETRIEVAL_PATHS_TOP1=32/32")
     print("VISUAL_ROBUSTNESS_SEARCH_SPACE_IMAGES=4")
     print("PUBLIC_DEMO_TOTAL_EXECUTED_RETRIEVAL_CHECKS=68/68")
-    print("ATOMIC_NOTEBOOK_RUNNER=PASS", flush=True)
+    print("SECTIONED_NOTEBOOK_SCORECARD=PASS", flush=True)
 
     display(
         Markdown(
             "## Contract chấp nhận cuối cùng / Final acceptance contract\n\n"
-            "A successful atomic run proceeds through setup → text → Step 7A semantic "
+            "A successful sectioned run proceeds through setup → text → Step 7A semantic "
             "image→text → Step 7B visual robustness → closeout. The two benchmarks remain "
             "explicitly separated by search space.\n\n"
             "FROZEN_BILINGUAL_SHOWCASE=PASS\n\n"
