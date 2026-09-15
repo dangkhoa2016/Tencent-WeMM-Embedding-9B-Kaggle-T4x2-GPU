@@ -93,3 +93,18 @@ def test_frozen_runtime_and_visual_contracts_are_not_reopened():
     assert "SEMANTIC_CORPUS_RETRIEVAL_PATHS_TOP1=36/36" in closeout
     assert "VISUAL_ROBUSTNESS_RETRIEVAL_PATHS_TOP1=32/32" in closeout
     assert "PUBLIC_DEMO_TOTAL_EXECUTED_RETRIEVAL_CHECKS=68/68" in closeout
+
+
+def test_visual_showcase_defers_frozen_runtime_imports():
+    source = (MODULE_DIR / "visual_showcase.py").read_text(encoding="utf-8")
+    module = ast.parse(source, filename="visual_showcase.py")
+    top_level_imports = []
+    for node in module.body:
+        if isinstance(node, ast.Import):
+            top_level_imports.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            top_level_imports.append(node.module or "")
+
+    assert not any(name.startswith("wemm_kaggle") for name in top_level_imports)
+    assert "qdrant_client" not in top_level_imports
+    assert "from wemm_kaggle.demo_config import EVID, RUN_ROOT" in source
