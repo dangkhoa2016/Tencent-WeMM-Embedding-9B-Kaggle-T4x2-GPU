@@ -11,13 +11,6 @@ from pathlib import Path
 from urllib.parse import quote
 
 from IPython.display import Markdown, display
-from PIL import Image, ImageEnhance, ImageOps
-from qdrant_client import QdrantClient, models
-import requests
-
-from wemm_kaggle.demo_config import EVID, RUN_ROOT
-from wemm_kaggle.demo_io import truncate_vector
-from wemm_kaggle.demo_qdrant import write_cache_seal
 
 
 VISUAL_THRESHOLD = 0.90
@@ -40,6 +33,7 @@ def _sha256(path: Path) -> str:
 
 
 def _download_normalized(session, spec: dict, image_dir: Path):
+    from PIL import Image, ImageOps
     url = (
         "https://commons.wikimedia.org/wiki/Special:Redirect/file/"
         + quote(spec["p18"], safe="")
@@ -73,6 +67,7 @@ def _download_normalized(session, spec: dict, image_dir: Path):
 
 
 def _make_transforms(qid: str, source_path: Path, transform_root: Path):
+    from PIL import Image, ImageEnhance
     out_dir = transform_root / qid
     out_dir.mkdir(parents=True, exist_ok=True)
     with Image.open(source_path) as source:
@@ -108,6 +103,8 @@ def _make_transforms(qid: str, source_path: Path, transform_root: Path):
 
 
 def _display_preview(path: Path):
+    from PIL import Image
+
     with Image.open(path) as shown:
         thumb = shown.copy()
         thumb.thumbnail((520, 360), Image.Resampling.LANCZOS)
@@ -116,6 +113,12 @@ def _display_preview(path: Path):
 
 def run_visual_showcase(demo) -> dict:
     """Execute the accepted 4 entities × 4 transforms × 2 dimensions matrix."""
+
+    import requests
+    from qdrant_client import QdrantClient, models
+    from wemm_kaggle.demo_config import EVID, RUN_ROOT
+    from wemm_kaggle.demo_io import truncate_vector
+    from wemm_kaggle.demo_qdrant import write_cache_seal
 
     display(
         Markdown(
