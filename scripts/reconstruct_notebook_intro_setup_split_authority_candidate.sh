@@ -162,7 +162,7 @@ for marker in (
     "Internet = ON",
     "dangkhoa2016/tencent-wemm-embedding-9b",
     "dangkhoa2016/wemm-embedding-9b-v1-qdrant-snapshots",
-    "version 1",
+    "version `1`",
     "/kaggle/input",
     "requirements-kaggle.txt",
     "requirements-demo.txt",
