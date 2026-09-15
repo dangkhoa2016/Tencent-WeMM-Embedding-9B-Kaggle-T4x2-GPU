@@ -7,7 +7,8 @@ cd "$REPO_ROOT"
 FROZEN_26="d04bcd3e601b449b67d09ff1132cab965619d858"
 OLD_27="9ab67ac923547cb52c90ec7feb2a3900e8e79dee"
 OLD_28="62531c22f865276a335dcfef9a6336d3513ed4a0"
-CORRECTIVE_REF="origin/candidate/notebook-markdown-onboarding-corrective-20260915"
+CORRECTIVE_BRANCH="origin/candidate/notebook-markdown-onboarding-corrective-20260915"
+CORRECTIVE_CONTENT_COMMIT="91dd1fd57672fe9cb486851c05bfb7ab94c2814d"
 CANDIDATE_BRANCH="candidate/notebook-markdown-onboarding-authority-20260915"
 
 AUTHOR_NAME="Đăng Khoa"
@@ -21,12 +22,13 @@ echo "=== FETCH AUTHORITY INPUTS ==="
 git fetch origin --prune --tags
 git fetch origin candidate/notebook-markdown-onboarding-corrective-20260915
 
-test "$(git rev-parse "$CORRECTIVE_REF")" = "91dd1fd57672fe9cb486851c05bfb7ab94c2814d"
+git merge-base --is-ancestor "$CORRECTIVE_CONTENT_COMMIT" "$CORRECTIVE_BRANCH"
 
 echo "FROZEN_26=$FROZEN_26"
 echo "OLD_27=$OLD_27"
 echo "OLD_28=$OLD_28"
-echo "CORRECTIVE_REF=$(git rev-parse "$CORRECTIVE_REF")"
+echo "CORRECTIVE_BRANCH_HEAD=$(git rev-parse "$CORRECTIVE_BRANCH")"
+echo "CORRECTIVE_CONTENT_COMMIT=$CORRECTIVE_CONTENT_COMMIT"
 
 echo "=== VERIFY EXISTING CANONICAL TOPOLOGY ==="
 test "$(git rev-parse "$OLD_27^")" = "$FROZEN_26"
@@ -55,7 +57,7 @@ git config user.email "$AUTHOR_EMAIL"
 
 echo "=== RECONSTRUCT COMMIT 27 TREE ==="
 git read-tree --reset -u "$OLD_27"
-git checkout "$CORRECTIVE_REF" -- "$NOTEBOOK" "$TEST_FILE"
+git checkout "$CORRECTIVE_CONTENT_COMMIT" -- "$NOTEBOOK" "$TEST_FILE"
 git diff --cached --check
 
 echo "Commit-27 changes vs previous canonical commit 27:"
