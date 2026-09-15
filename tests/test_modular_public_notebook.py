@@ -177,6 +177,8 @@ def test_public_notebook_markdown_restores_kaggle_onboarding_and_phase_guidance(
     assert "dangkhoa2016/wemm-embedding-9b-v1-qdrant-snapshots" in setup
     assert "version `1`" in setup
     assert "/kaggle/input" in setup
+    assert "requirements-kaggle.txt" in setup
+    assert "requirements-demo.txt" in setup
     assert "PUBLIC_NOTEBOOK_PRESENTATION_REF=v1.0.0" in setup
     assert "NOTEBOOK_PHASE_SETUP=PASS" in setup
 
