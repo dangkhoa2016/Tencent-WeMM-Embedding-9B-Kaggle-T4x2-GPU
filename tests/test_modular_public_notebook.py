@@ -1,0 +1,132 @@
+"""Structural guards for the modular one-cell public Kaggle notebook."""
+
+from __future__ import annotations
+
+import ast
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+NOTEBOOK = ROOT / "notebooks" / "kaggle-production-demo-thin.ipynb"
+MODULE_DIR = ROOT / "wemm_notebook"
+
+
+def _notebook():
+    return json.loads(NOTEBOOK.read_text(encoding="utf-8"))
+
+
+def test_public_notebook_is_one_short_atomic_code_cell():
+    nb = _notebook()
+    code_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "code"]
+    assert len(code_cells) == 1
+
+    source = "".join(code_cells[0]["source"])
+    assert len(source.splitlines()) <= 50
+    assert "run_public_notebook()" in source
+    assert 'PUBLIC_RELEASE_REF = "v1.0.0"' in source
+    assert code_cells[0]["outputs"] == []
+    assert code_cells[0]["execution_count"] is None
+
+
+def test_modular_phase_files_exist_and_parse():
+    expected = {
+        "__init__.py",
+        "bootstrap.py",
+        "runner.py",
+        "text_showcase.py",
+        "image_showcase.py",
+        "visual_showcase.py",
+        "closeout.py",
+    }
+    assert expected.issubset({path.name for path in MODULE_DIR.glob("*.py")})
+
+    for name in expected:
+        source = (MODULE_DIR / name).read_text(encoding="utf-8")
+        ast.parse(source, filename=name)
+
+
+def test_runner_preserves_atomic_phase_order_and_fail_closed_cleanup():
+    source = (MODULE_DIR / "runner.py").read_text(encoding="utf-8")
+    order = [
+        "bootstrap_runtime()",
+        "start_public_demo()",
+        "run_text_showcase(demo)",
+        "run_image_showcase(demo)",
+        "run_visual_showcase(demo)",
+        "run_closeout(demo, visual_results)",
+    ]
+    offsets = [source.index(marker) for marker in order]
+    assert offsets == sorted(offsets)
+    assert "except BaseException:" in source
+    assert "demo.abort()" in source
+    assert "ATOMIC_FAILURE_DEMO_ABORT=PASS" in source
+
+
+def test_text_showcase_is_full_text_and_separates_winner_competitor():
+    source = (MODULE_DIR / "text_showcase.py").read_text(encoding="utf-8")
+    assert "_clip(" not in source
+    assert "TOP-1 WINNER / KẾT QUẢ #1" in source
+    assert "NEAREST COMPETITOR / ĐỐI THỦ GẦN NHẤT" in source
+    assert "full embedded text" in source
+    assert "Full candidate text" in source
+    assert "STEP_6_PRESENTATION_LAYER=HUMAN_FIRST_FULL_TEXT" in source
+    assert "confidence percentage" in source
+
+
+def test_frozen_runtime_and_visual_contracts_are_not_reopened():
+    bootstrap = (MODULE_DIR / "bootstrap.py").read_text(encoding="utf-8")
+    visual = (MODULE_DIR / "visual_showcase.py").read_text(encoding="utf-8")
+    closeout = (MODULE_DIR / "closeout.py").read_text(encoding="utf-8")
+
+    assert "d04bcd3e601b449b67d09ff1132cab965619d858" in bootstrap
+    assert "VISUAL_THRESHOLD = 0.90" in visual
+    for qid in ("Q19217", "Q10489198", "Q168751", "Q51756"):
+        assert qid in visual
+    for transform in (
+        "resize_80pct",
+        "jpeg_q90",
+        "center_crop_96pct",
+        "brightness_103pct",
+    ):
+        assert transform in visual
+    assert "SEMANTIC_CORPUS_RETRIEVAL_PATHS_TOP1=36/36" in closeout
+    assert "VISUAL_ROBUSTNESS_RETRIEVAL_PATHS_TOP1=32/32" in closeout
+    assert "PUBLIC_DEMO_TOTAL_EXECUTED_RETRIEVAL_CHECKS=68/68" in closeout
+
+
+def test_visual_showcase_defers_frozen_runtime_imports():
+    source = (MODULE_DIR / "visual_showcase.py").read_text(encoding="utf-8")
+    module = ast.parse(source, filename="visual_showcase.py")
+    top_level_imports = []
+    for node in module.body:
+        if isinstance(node, ast.Import):
+            top_level_imports.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            top_level_imports.append(node.module or "")
+
+    assert not any(name.startswith("wemm_kaggle") for name in top_level_imports)
+    assert "qdrant_client" not in top_level_imports
+    assert "from wemm_kaggle.demo_config import EVID, RUN_ROOT" in source
+
+
+def test_public_notebook_restores_sectioned_markdown_presentation():
+    nb = _notebook()
+    markdown_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "markdown"]
+    assert len(markdown_cells) == 8
+
+    rendered = ["".join(cell["source"]) for cell in markdown_cells]
+    expected_headings = [
+        "# Tencent WeMM-Embedding-9B + Qdrant — Kaggle T4×2 Production Demo",
+        "## Kiến trúc, search spaces và Kaggle Inputs / Architecture, search spaces, and Kaggle Inputs",
+        "## Steps 1/8–5/8 — Bootstrap + chuẩn bị hệ thống / Bootstrap + system setup",
+        "## Step 6/8 — Truy xuất văn bản song ngữ / Bilingual text retrieval",
+        "## Step 7A/8 — Truy xuất semantic ảnh→văn bản / Semantic image→text retrieval",
+        "## Step 7B/8 — Độ bền truy xuất hình ảnh / Visual robustness retrieval",
+        "## Step 8/8 — Đóng phiên + nghiệm thu / Closeout + acceptance",
+        "## Contract chấp nhận + cách chạy / Acceptance contract + how to run",
+    ]
+    assert [text.splitlines()[0] for text in rendered] == expected_headings
+
+    assert nb["metadata"]["wemm_public_demo"]["presentation_markdown_cells"] == 8
+    assert nb["metadata"]["wemm_public_demo"]["presentation_sections_restored"] is True
