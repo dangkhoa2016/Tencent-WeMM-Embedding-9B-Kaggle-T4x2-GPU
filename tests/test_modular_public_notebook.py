@@ -123,11 +123,11 @@ def test_visual_showcase_defers_frozen_runtime_imports():
     assert "from wemm_kaggle.demo_config import EVID, RUN_ROOT" in source
 
 
-def test_public_notebook_pairs_five_markdown_sections_with_five_code_cells():
+def test_public_notebook_separates_intro_from_five_phase_markdown_sections():
     nb = _notebook()
-    assert len(nb["cells"]) == 10
+    assert len(nb["cells"]) == 11
     assert [cell["cell_type"] for cell in nb["cells"]] == [
-        "markdown", "code",
+        "markdown", "markdown", "code",
         "markdown", "code",
         "markdown", "code",
         "markdown", "code",
@@ -138,6 +138,7 @@ def test_public_notebook_pairs_five_markdown_sections_with_five_code_cells():
     rendered = ["".join(cell["source"]) for cell in markdown_cells]
     expected_headings = [
         "# Tencent WeMM-Embedding-9B + Qdrant — Kaggle T4×2 Production Demo",
+        "## Steps 1/8–5/8 — Bootstrap + chuẩn bị hệ thống / Bootstrap + system setup",
         "## Step 6/8 — Truy xuất văn bản song ngữ / Bilingual text retrieval",
         "## Step 7A/8 — Truy xuất semantic ảnh→văn bản / Semantic image→text retrieval",
         "## Step 7B/8 — Độ bền truy xuất hình ảnh / Visual robustness retrieval",
@@ -145,12 +146,20 @@ def test_public_notebook_pairs_five_markdown_sections_with_five_code_cells():
     ]
     assert [text.splitlines()[0] for text in rendered] == expected_headings
 
+    intro = rendered[0]
+    setup = rendered[1]
+    assert "## Tổng quan / Overview" in intro
+    assert "Add Input" not in intro
+    assert "## Steps 1/8–5/8" not in intro
+    assert "Add Input" in setup
+
     metadata = nb["metadata"]["wemm_public_demo"]
-    assert metadata["presentation_markdown_cells"] == 5
+    assert metadata["presentation_markdown_cells"] == 6
     assert metadata["executable_code_cells"] == 5
     assert metadata["sectioned_five_code_cell_runner"] is True
     assert metadata["atomic_one_code_cell_runner"] is False
     assert metadata["step_7a_7b_separate_code_cells"] is True
+    assert metadata["intro_setup_separate_markdown_cells"] is True
 
 
 def test_step7a_and_step7b_modules_do_not_duplicate_notebook_headings():
@@ -166,10 +175,16 @@ def test_step7a_and_step7b_modules_do_not_duplicate_notebook_headings():
 def test_public_notebook_markdown_restores_kaggle_onboarding_and_phase_guidance():
     nb = _notebook()
     markdown_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "markdown"]
-    assert len(markdown_cells) == 5
+    assert len(markdown_cells) == 6
     rendered = ["".join(cell["source"]) for cell in markdown_cells]
 
-    setup = rendered[0]
+    intro = rendered[0]
+    assert "## Tổng quan / Overview" in intro
+    assert "99,967 entities per production collection" in intro
+    assert "68/68 PASS" in intro
+    assert "Add Input" not in intro
+
+    setup = rendered[1]
     assert "Add Input" in setup
     assert "GPU T4 ×2" in setup
     assert "Internet = ON" in setup
@@ -182,26 +197,26 @@ def test_public_notebook_markdown_restores_kaggle_onboarding_and_phase_guidance(
     assert "PUBLIC_NOTEBOOK_PRESENTATION_REF=v1.0.0" in setup
     assert "NOTEBOOK_PHASE_SETUP=PASS" in setup
 
-    step6 = rendered[1]
+    step6 = rendered[2]
     assert "20 retrieval paths" in step6
     assert "TOP-1 WINNER / KẾT QUẢ #1" in step6
     assert "NEAREST COMPETITOR / ĐỐI THỦ GẦN NHẤT" in step6
     assert "TEXT_SHOWCASE_ALL_TOP1=5/5" in step6
     assert "confidence percentage" in step6
 
-    step7a = rendered[2]
+    step7a = rendered[3]
     assert "99,967 entities per collection" in step7a
     assert "16 semantic retrieval paths" in step7a
     assert "NOTEBOOK_PHASE_STEP7A=PASS" in step7a
 
-    step7b = rendered[3]
+    step7b = rendered[4]
     for qid in ("Q19217", "Q10489198", "Q168751", "Q51756"):
         assert qid in step7b
     assert "32 retrieval paths" in step7b
     assert "raw cosine >= 0.90" in step7b
     assert "VISUAL_RETRIEVAL_TEMP_QDRANT=DELETED" in step7b
 
-    step8 = rendered[4]
+    step8 = rendered[5]
     assert "36/36 TOP-1" in step8
     assert "32/32 TOP-1" in step8
     assert "68/68 PASS" in step8
@@ -212,3 +227,4 @@ def test_public_notebook_markdown_restores_kaggle_onboarding_and_phase_guidance(
     metadata = nb["metadata"]["wemm_public_demo"]
     assert metadata["markdown_onboarding_restored"] is True
     assert metadata["per_phase_guidance_expanded"] is True
+    assert metadata["intro_setup_separate_markdown_cells"] is True
