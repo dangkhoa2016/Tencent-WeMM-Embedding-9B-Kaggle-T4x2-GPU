@@ -1,4 +1,4 @@
-"""Structural guards for the modular one-cell public Kaggle notebook."""
+"""Structural guards for the modular sectioned public Kaggle notebook."""
 
 from __future__ import annotations
 
@@ -16,17 +16,23 @@ def _notebook():
     return json.loads(NOTEBOOK.read_text(encoding="utf-8"))
 
 
-def test_public_notebook_is_one_short_atomic_code_cell():
+def test_public_notebook_has_five_short_sectioned_code_cells():
     nb = _notebook()
     code_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "code"]
-    assert len(code_cells) == 1
+    assert len(code_cells) == 5
 
-    source = "".join(code_cells[0]["source"])
-    assert len(source.splitlines()) <= 50
-    assert "run_public_notebook()" in source
-    assert 'PUBLIC_RELEASE_REF = "v1.0.0"' in source
-    assert code_cells[0]["outputs"] == []
-    assert code_cells[0]["execution_count"] is None
+    sources = ["".join(cell["source"]) for cell in code_cells]
+    assert all(len(source.splitlines()) <= 40 for source in sources)
+    assert 'PUBLIC_RELEASE_REF = "v1.0.0"' in sources[0]
+    assert "demo = start_public_session()" in sources[0]
+    assert sources[1].strip() == "text_results = run_step6(demo)"
+    assert sources[2].strip() == "image_results = run_step7a(demo)"
+    assert sources[3].strip() == "visual_results = run_step7b(demo)"
+    assert sources[4].strip() == "final_summary = run_step8(demo, visual_results)"
+
+    for cell in code_cells:
+        assert cell["outputs"] == []
+        assert cell["execution_count"] is None
 
 
 def test_modular_phase_files_exist_and_parse():
@@ -46,21 +52,28 @@ def test_modular_phase_files_exist_and_parse():
         ast.parse(source, filename=name)
 
 
-def test_runner_preserves_atomic_phase_order_and_fail_closed_cleanup():
+def test_runner_exposes_sectioned_phase_order_and_fail_closed_cleanup():
     source = (MODULE_DIR / "runner.py").read_text(encoding="utf-8")
     order = [
-        "bootstrap_runtime()",
-        "start_public_demo()",
-        "run_text_showcase(demo)",
-        "run_image_showcase(demo)",
-        "run_visual_showcase(demo)",
-        "run_closeout(demo, visual_results)",
+        "def start_public_session():",
+        "def run_step6(demo):",
+        "def run_step7a(demo):",
+        "def run_step7b(demo):",
+        "def run_step8(demo, visual_results=None):",
     ]
     offsets = [source.index(marker) for marker in order]
     assert offsets == sorted(offsets)
-    assert "except BaseException:" in source
-    assert "demo.abort()" in source
-    assert "ATOMIC_FAILURE_DEMO_ABORT=PASS" in source
+
+    assert '_require_phase(demo, "setup")' in source
+    assert '_require_phase(demo, "step6")' in source
+    assert '_require_phase(demo, "step7a")' in source
+    assert '_require_phase(demo, "step7b")' in source
+    assert "SECTIONED_STEP6_FAILURE_ABORT" in source
+    assert "SECTIONED_STEP7A_FAILURE_ABORT" in source
+    assert "SECTIONED_STEP7B_FAILURE_ABORT" in source
+    assert "SECTIONED_STEP8_FAILURE_ABORT" in source
+    assert "STEP_7A_7B_SEPARATE_CELLS=PASS" in source
+    assert "NOTEBOOK_EXECUTABLE_CELLS=5" in source
 
 
 def test_text_showcase_is_full_text_and_separates_winner_competitor():
@@ -110,23 +123,41 @@ def test_visual_showcase_defers_frozen_runtime_imports():
     assert "from wemm_kaggle.demo_config import EVID, RUN_ROOT" in source
 
 
-def test_public_notebook_restores_sectioned_markdown_presentation():
+def test_public_notebook_pairs_five_markdown_sections_with_five_code_cells():
     nb = _notebook()
-    markdown_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "markdown"]
-    assert len(markdown_cells) == 8
+    assert len(nb["cells"]) == 10
+    assert [cell["cell_type"] for cell in nb["cells"]] == [
+        "markdown", "code",
+        "markdown", "code",
+        "markdown", "code",
+        "markdown", "code",
+        "markdown", "code",
+    ]
 
+    markdown_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "markdown"]
     rendered = ["".join(cell["source"]) for cell in markdown_cells]
     expected_headings = [
         "# Tencent WeMM-Embedding-9B + Qdrant — Kaggle T4×2 Production Demo",
-        "## Kiến trúc, search spaces và Kaggle Inputs / Architecture, search spaces, and Kaggle Inputs",
-        "## Steps 1/8–5/8 — Bootstrap + chuẩn bị hệ thống / Bootstrap + system setup",
         "## Step 6/8 — Truy xuất văn bản song ngữ / Bilingual text retrieval",
         "## Step 7A/8 — Truy xuất semantic ảnh→văn bản / Semantic image→text retrieval",
         "## Step 7B/8 — Độ bền truy xuất hình ảnh / Visual robustness retrieval",
         "## Step 8/8 — Đóng phiên + nghiệm thu / Closeout + acceptance",
-        "## Contract chấp nhận + cách chạy / Acceptance contract + how to run",
     ]
     assert [text.splitlines()[0] for text in rendered] == expected_headings
 
-    assert nb["metadata"]["wemm_public_demo"]["presentation_markdown_cells"] == 8
-    assert nb["metadata"]["wemm_public_demo"]["presentation_sections_restored"] is True
+    metadata = nb["metadata"]["wemm_public_demo"]
+    assert metadata["presentation_markdown_cells"] == 5
+    assert metadata["executable_code_cells"] == 5
+    assert metadata["sectioned_five_code_cell_runner"] is True
+    assert metadata["atomic_one_code_cell_runner"] is False
+    assert metadata["step_7a_7b_separate_code_cells"] is True
+
+
+def test_step7a_and_step7b_modules_do_not_duplicate_notebook_headings():
+    image = (MODULE_DIR / "image_showcase.py").read_text(encoding="utf-8")
+    visual = (MODULE_DIR / "visual_showcase.py").read_text(encoding="utf-8")
+    closeout = (MODULE_DIR / "closeout.py").read_text(encoding="utf-8")
+
+    assert "## Step 7A/8" not in image
+    assert "## Step 7B/8" not in visual
+    assert "## Step 8/8" not in closeout
