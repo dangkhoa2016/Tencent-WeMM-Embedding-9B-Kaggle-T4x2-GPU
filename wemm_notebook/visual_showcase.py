@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 from urllib.parse import quote
 
-from IPython.display import Markdown, display
+from IPython.display import display
 
 
 VISUAL_THRESHOLD = 0.90
@@ -119,20 +119,6 @@ def run_visual_showcase(demo) -> dict:
     from wemm_kaggle.demo_config import EVID, RUN_ROOT
     from wemm_kaggle.demo_io import truncate_vector
     from wemm_kaggle.demo_qdrant import write_cache_seal
-
-    display(
-        Markdown(
-            "## Step 7B/8 — Truy xuất hình ảnh độ tin cậy cao / High-confidence visual retrieval\n\n"
-            "**VI:** Search space là temporary gallery gồm đúng 4 original P18 images, "
-            "không phải corpus 99,967 entities. Bốn transforms là resize 80%, JPEG q90, "
-            "center crop 96%, brightness 103%; mỗi query chạy ở 4096d và 1024d. "
-            "PASS yêu cầu toàn bộ 32/32 path rank #1 với raw cosine >= 0.90.\n\n"
-            "**EN:** This executes 4 transforms × 2 dimensions × 4 entities = 32 retrieval "
-            "paths over a temporary four-image gallery. PASS requires all 32 paths to rank "
-            "the correct original image at #1 with raw cosine >= 0.90. No score rescaling "
-            "or threshold relaxation is allowed."
-        )
-    )
 
     if demo.closed:
         raise RuntimeError("Demo session is already closed")
